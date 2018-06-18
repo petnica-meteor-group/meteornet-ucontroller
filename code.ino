@@ -8,15 +8,15 @@ extern "C" {
 }
 
 #define DHTTYPE DHT22
-const int DHTPIN = 14;
+const int DHTPIN = A7;
 
-const int SHUTTER_SERVO_PIN = 16;
+const int SHUTTER_SERVO_PIN = A6;
 const int SHUTTER_ANGLE_OPEN = 0;
 const int SHUTTER_ANGLE_CLOSED = 180;
 const int SHUTTER_ANGLE_DELTA = 2;
 const int SHUTTER_ANGLE_DELAY = 20;
 
-const int CAMERA_SWITCH_PIN = 18;
+const int CAMERA_SWITCH_PIN = A3;
 
 DHT dht(DHTPIN, DHTTYPE);
 Servo shutter_servo;
