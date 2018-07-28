@@ -8,9 +8,9 @@ extern "C" {
 }
 
 #define DHTTYPE DHT22
-const int DHTPIN = A5;
+const int DHTPIN = A4;
 
-const int SHUTTER_SERVO_PIN = A4;
+const int SHUTTER_SERVO_PIN = A5;
 const int SHUTTER_ANGLE_OPEN = 0;
 const int SHUTTER_ANGLE_CLOSED = 180;
 const int SHUTTER_ANGLE_DELTA = 2;
