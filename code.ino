@@ -70,6 +70,9 @@ void setup() {
     shutter_servo_angle = shutter_servo.read();
 
     serial_init();
+
+    shutter_open();
+    camera_turn_on();
 }
 
 void loop() {
