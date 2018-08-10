@@ -12,7 +12,8 @@ enum Command {
     SHUTTER_CLOSE,
     CAMERA_TURN_ON,
     CAMERA_TURN_OFF,
-    DHT_INFO_GET
+    DHT_INFO_GET,
+    POWER_SUPPLY_CHECK
 };
 
 #endif /* COM_PROTOCOL_H */
