@@ -18,7 +18,7 @@ const int SHUTTER_ANGLE_DELAY = 20;
 
 const int CAMERA_SWITCH_PIN = A3;
 
-const POWER_SUPPLY_PIN = A0;
+const int POWER_SUPPLY_PIN = A0;
 
 DHT dht(DHTPIN, DHTTYPE);
 Servo shutter_servo;
@@ -69,7 +69,7 @@ inline void power_supply_check(int *status) {
 
 inline void power_supply_report(int status) {
     uint32_t info = status;
-    serial_send(&info);
+    serial_send(info);
 }
 
 void setup() {
