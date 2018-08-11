@@ -64,7 +64,7 @@ inline void dht_info_send(float hum, float temp) {
 }
 
 inline void power_supply_check(int *status) {
-    *status = digitalRead(POWER_SUPPLY_PIN) == HIGH;
+    *status = analogRead(POWER_SUPPLY_PIN) > 800;
 }
 
 inline void power_supply_report(int status) {
@@ -74,6 +74,7 @@ inline void power_supply_report(int status) {
 
 void setup() {
     pinMode(CAMERA_SWITCH_PIN, OUTPUT);
+    pinMode(POWER_SUPPLY_PIN, INPUT);
 
     dht.begin();
 
