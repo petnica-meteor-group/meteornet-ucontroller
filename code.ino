@@ -18,7 +18,7 @@ const int SHUTTER_ANGLE_DELAY = 20;
 
 const int CAMERA_SWITCH_PIN = A3;
 
-const POWER_SUPPLY_PIN = A0;
+const int POWER_SUPPLY_PIN = A0;
 
 DHT dht(DHTPIN, DHTTYPE);
 Servo shutter_servo;
@@ -64,16 +64,17 @@ inline void dht_info_send(float hum, float temp) {
 }
 
 inline void power_supply_check(int *status) {
-    *status = digitalRead(POWER_SUPPLY_PIN) == HIGH;
+    *status = analogRead(POWER_SUPPLY_PIN) > 800;
 }
 
 inline void power_supply_report(int status) {
     uint32_t info = status;
-    serial_send(&info);
+    serial_send(info);
 }
 
 void setup() {
     pinMode(CAMERA_SWITCH_PIN, OUTPUT);
+    pinMode(POWER_SUPPLY_PIN, INPUT);
 
     dht.begin();
 
