@@ -17,12 +17,24 @@ const int SHUTTER_ANGLE_DELTA = 2;
 const int SHUTTER_ANGLE_DELAY = 20;
 
 const int CAMERA_SWITCH_PIN = A3;
+const int CAMERA_VOLTAGE_PIN = A1;
 
-const int POWER_SUPPLY_PIN = A0;
+const int PSU_STATUS_PIN = A0;
 
 DHT dht(DHTPIN, DHTTYPE);
+
 Servo shutter_servo;
 int shutter_servo_angle;
+
+inline void dht_info_get(float *hum, float* temp) {
+    *hum = dht.readHumidity();
+    *temp = dht.readTemperature();
+}
+
+inline void dht_info_send(float hum, float temp) {
+    serial_send(*(uint32_t*)&hum);
+    serial_send(*(uint32_t*)&temp);
+}
 
 void shutter_move_to(int target_angle) {
     while (shutter_servo_angle != target_angle) {
@@ -53,28 +65,26 @@ inline void camera_turn_off() {
     digitalWrite(CAMERA_SWITCH_PIN, LOW);
 }
 
-inline void dht_info_get(float *hum, float* temp) {
-    *hum = dht.readHumidity();
-    *temp = dht.readTemperature();
+inline void psu_status_get(int *status) {
+    *status = (digitalRead(PSU_STATUS_PIN) == HIGH);
 }
 
-inline void dht_info_send(float hum, float temp) {
-    serial_send(*(uint32_t*)&hum);
-    serial_send(*(uint32_t*)&temp);
+inline void psu_status_send(uint32_t status) {
+    serial_send(status);
 }
 
-inline void power_supply_check(int *status) {
-    *status = analogRead(POWER_SUPPLY_PIN) > 800;
+inline void camera_voltage_get(int voltage) {
+    *voltage = analogRead(CAMERA_VOLTAGE_PIN);
 }
 
-inline void power_supply_report(int status) {
-    uint32_t info = status;
-    serial_send(info);
+inline void camera_voltage_send(uint32_t voltage) {
+    serial_send(voltage);
 }
 
 void setup() {
     pinMode(CAMERA_SWITCH_PIN, OUTPUT);
-    pinMode(POWER_SUPPLY_PIN, INPUT);
+    pinMode(CAMERA_VOLTAGE_PIN, INPUT);
+    pinMode(PSU_STATUS_PIN, INPUT);
 
     dht.begin();
 
@@ -91,6 +101,13 @@ void loop() {
     uint32_t command;
     serial_receive(&command);
     switch (command) {
+        case DHT_INFO_GET: {
+            float hum;
+            float temp;
+            dht_info_get(&hum, &temp);
+            dht_info_send(hum, temp);
+            break;
+        }
         case SHUTTER_OPEN: {
             shutter_open();
             break;
@@ -107,17 +124,16 @@ void loop() {
             camera_turn_off();
             break;
         }
-        case DHT_INFO_GET: {
-            float hum;
-            float temp;
-            dht_info_get(&hum, &temp);
-            dht_info_send(hum, temp);
+        case PSU_STATUS_GET: {
+            int status;
+            psu_status_get(&status);
+            psu_status_send(status);
             break;
         }
-        case POWER_SUPPLY_CHECK: {
-            int status;
-            power_supply_check(&status);
-            power_supply_report(status);
+        case CAMERA_VOLTAGE_GET: {
+            int voltage;
+            camera_voltage_get(&voltage);
+            camera_voltage_send(voltage);
             break;
         }
     }

@@ -1,74 +1,16 @@
-# Makefile for building Arduino sketches (programs) with Arduino from the
-# command line.
-#
-#  * By default compiles with a lot more warnings, to detect shoddy progamming.
-#    Comment out some of the OPT_WARN lines to turn this off.
-#  * To make your C++ source files (.cpp) compile with any Arduino version, use
-#    something like this:
-#      #if ARDUINO >= 100
-#      #include <Arduino.h>
-#      #else
-#      #include <WProgram.h>
-#      #endif
-#
-# Detailed instructions for using this Makefile:
-#
-#  1. Copy this file into the directory with your sketch.
-#     There should be a file with the extension .ino (previously .pde).
-#     cd into this directory.
-#
-#  2. Below, modify the settings of various variables, but at least
-#        PROJECT
-#        ARDUINO_MODEL
-#        PORT
-#        ARDUINO
-#        ARDUINO_DIR
-#        ARDUINO_VARIANT
-#        ARDUINO_LIBS and USER_LIBS
-#
-#     Check the other variables, but they're not likely needing to change.
-#     See the descriptions at the variables for details.
-#
-#  3. Function prototypes. (Not super necessary, but helps if you have issues)
-#     Sorry, they're necessary with every programming. The Arduino IDE tries
-#     to create them automatically and does get it mostly (but not always)
-#     right.
-#     If you know of a way to create prototypes automaticlly, let me know.
-#     It might be easiest to start with the prototypes created by the IDE.
-#     Run the build in the IDE, locate the project source file created by the
-#     IDE (for a project XYZ it's something like
-#     /tmp/build4303013692903917981.tmp/XYZ.cpp, and copy the prototypes.
-#     They're just before the first variable that is declared.
-#
-#     If you have multiple .ino/.pde files, put the prototypes for all of them
-#     into the main file (XYZ.ino).
-#
-#  4. Run "make" to compile/verify your program.
-#
-#  5. Run "make upload" (or "make up" for short) to upload your program to the
-#     Arduino board. The board is reset first.
-#
-#  6. Run "make help" for more options.
-#
-#
-# ToDo:
-#  * Expand the USB_PID and USB_VID detection for other build_extras, as defined
-#    in the Platforms.txt and Boards.txt files.
-#
-#
 # Makefile version (only used for help text).
 MKVERSION = 1.0
 
 # Determine operating system environment.
 # Possible values are (tested): Linux, FreeBSD (on 8.1), ...
-OSNAME =	$(shell uname)
+OSNAME = $(shell uname)
 
 # Name of the program and source .ino (previously .pde) file.
 # No extension here (e.g. PROJECT = Blink).
-PROJECT ?=	code
+PROJECT ?= code
 
 # Project version. Only used for packing the source into an archive.
-VERSION ?=	1.0
+VERSION ?= 1.0
 
 # Arduino model. E.g. atmega328, mega2560, uno.
 # Valid model names can be found in $(ARDUINO_DIR)/hardware/arduino/avr/boards.txt
