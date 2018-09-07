@@ -2,10 +2,9 @@
 MKVERSION = 1.0
 
 # Determine operating system environment.
-# Possible values are (tested): Linux, FreeBSD (on 8.1), ...
 OSNAME = $(shell uname)
 
-# Name of the program and source .ino (previously .pde) file.
+# Name of the program and source .ino file.
 # No extension here (e.g. PROJECT = Blink).
 PROJECT ?= code
 
@@ -16,24 +15,23 @@ VERSION ?= 1.0
 # Valid model names can be found in $(ARDUINO_DIR)/hardware/arduino/avr/boards.txt
 # This must be set to a valid model name.
 #ARDUINO_MODEL ?= micro
-ARDUINO_MODEL = uno
+#ARDUINO_MODEL = uno
 #ARDUINO_MODEL = nano328  # Is set to a 168 CPU
 #ARDUINO_MODEL = atmega2560
+ARDUINO_MODEL = nano.menu.cpu.atmega328
 
 # Arduino family E.g. mega, diecimila, nano.
 # Valid family names can be found in $(ARDUINO_Dir)/hardware/arduino/avr/boards.txt
 # Set this if your card is a part of a subset
-#ARDUINO_FAMILY = mega
+ARDUINO_FAMILY = nano
+
+# Arduino version (e.g. 23 for 0023, or 105 for 1.0.5).
+# Make sure this matches ARDUINO_DIR below!
+ARDUINO ?= 185
 
 # Location of the official Arduino IDE.
 # E.g. /usr/local/arduino, or $(HOME)/arduino
-# Make sure this matches ARDUINO above!
-#ARDUINO_DIR =	/usr/local/pckg/arduino/arduino-0023
-ARDUINO_DIR ?=	/usr/share/arduino
-
-# Arduino variant (for Arduino 1.0+).
-# Directory containing the pins_arduino.h file.
-#ARDUINO_VARIANT=$(ARDUINO_DIR)/hardware/arduino/avr/variants/micro
+ARDUINO_DIR ?= /usr/share/arduino
 
 # MCU architecture.
 # Currently hardcoded to avr (sam, etc. are unsupported.)
@@ -42,6 +40,12 @@ ARCH ?= avr
 # Location of the avr directory.
 AVR_DIR ?= $(ARDUINO_DIR)/hardware/archlinux-arduino/avr
 
+# Arduino variant (for Arduino 1.0+).
+# Directory containing the pins_arduino.h file.
+#ARDUINO_VARIANT ?= $(AVR_DIR)/variants/mega
+#ARDUINO_VARIANT ?= $(AVR_DIR)/variants/micro
+ARDUINO_VARIANT ?= $(AVR_DIR)/variants/standard
+
 # USB port the Arduino board is connected to.
 # Linux: e.g. /dev/ttyUSB0, or /dev/ttyACM0 for the Uno.
 # BSD:   e.g. /dev/cuaU0
@@ -49,12 +53,7 @@ AVR_DIR ?= $(ARDUINO_DIR)/hardware/archlinux-arduino/avr
 # It is a good idea to use udev rules to create a device name that is constant,
 # based on the serial number etc. of the USB device.
 #PORT ?=		/dev/serial/by-id/*Arduino*
-PORT ?=		/dev/ttyACM0
-
-# Arduino version (e.g. 23 for 0023, or 105 for 1.0.5).
-# Make sure this matches ARDUINO_DIR below!
-#ARDUINO = 	23
-ARDUINO ?= 	161
+PORT ?=	/dev/ttyUSB0
 
 # Arduino 0.x based on 328P now need the new programmer protocol.
 # Arduino 1.6+ uses the avr109 programmer by default
@@ -80,7 +79,7 @@ endif
 
 # User libraries (in ~/sketchbook/libraries/).
 # Give the name of the directory containing the library source files.
-USER_LIBDIR ?=	./libraries
+USER_LIBDIR ?= ./libraries
 USER_LIBS =
 USER_LIBS += Servo
 USER_LIBS += DHT_sensor_library
@@ -94,7 +93,7 @@ USER_LIBS += serial-com
 # give the directory with -L.
 # Note this is dealing with real libraries (libXXX.a), not Arduino "libraries"!
 LDLIBS ?=
-LDLIBS +=	-lm
+LDLIBS += -lm
 
 LISTING_ARGS =	-h -S
 LISTING_ARGS += -t -l -C -w
@@ -104,7 +103,7 @@ SYMBOL_ARGS +=	-C
 
 # Directory in which files are created.
 # Using the current directory ('.') is untested (and probably unwise).
-OUTPUT ?=	bin
+OUTPUT ?= bin
 
 # Where are tools like avr-gcc located on your system?
 # If you set this, it must end with a slash!
@@ -119,13 +118,13 @@ AVR_TOOLS_PATH ?=
 ### Macro definitions. Place -D or -U options here.
 CDEFS ?=
 ifdef LTO
-CDEFS +=	-DLTO
+CDEFS += -DLTO
 endif
 ifdef SD
-CDEFS +=	-DUSE_SD
+CDEFS += -DUSE_SD
 endif
 ifdef mega
-CDEFS +=	-DARDUINO_MEGA
+CDEFS += -DARDUINO_MEGA
 endif
 
 ############################################################################
@@ -138,10 +137,10 @@ HEXFORMAT =	ihex
 # Name of the dependencies file (used for "make depend").
 # This doesn't work too well.
 # Maybe drop this idea and use auto-generated dependencies (*.d) instead?
-DEPFILE =	$(OUTPUT)/Makefile.depend
+DEPFILE = $(OUTPUT)/Makefile.depend
 
 # Name of the tar file in which to pack the user program up in.
-TARFILE =	$(PROJECT)-$(VERSION).tar
+TARFILE = $(PROJECT)-$(VERSION).tar
 
 # Default reset command if still unset.
 RESETCMD ?=	stty
@@ -170,37 +169,6 @@ AVRDUDE_PROGRAMMER ?= $(call getboardvar,upload.protocol)
 VID ?=		$(call getboardvar,build.vid)
 PID ?=		$(call getboardvar,build.pid)
 BOARD ?=	$(call getboardvar,build.board)
-
-# Try and guess PORT if it wasn't set previously.
-# Note using shell globs most likely won't work, so try first port.
-ifeq "$(OSNAME)" "Linux"
-ifeq ("$(ARDUINO_MODEL)", $(filter "$(ARDUINO_MODEL)", "uno" "mega2560"))
-    PORT ?= /dev/ttyACM0
-else
-    PORT ?= /dev/ttyUSB0
-endif
-else
-    # Not Linux, so try BSD port name
-    PORT ?= /dev/cuaU0
-endif
-
-# Try and guess ARDUINO_VARIANT if it wasn't set previously.
-# Possible values for Arduino 1.0 are:
-#   eightanaloginputs leonardo mega micro standard
-# This makefile part is incomplete. Best set variant explicitly at the top.
-# Default is "standard".
-ifeq ($(ARDUINO_VARIANT),)
-ifeq ("$(ARDUINO_MODEL)", $(filter "$(ARDUINO_MODEL)", "mega" "mega2560"))
-ARDUINO_VARIANT ?= $(AVR_DIR)/variants/mega
-else
-ifeq "$(ARDUINO_MODEL)" "micro"
-ARDUINO_VARIANT ?= $(AVR_DIR)/variants/micro
-else
-ARDUINO_VARIANT ?= $(AVR_DIR)/variants/standard
-endif
-endif
-endif
-
 
 ### Sources
 
@@ -352,30 +320,21 @@ CDEFS +=	-DARDUINO_ARCH_$(shell echo $(ARCH) | tr '[a-z]' '[A-Z]')
 ### C/C++ Compiler flags.
 
 # C standard level.
-# c89   - ISO C90 ("ANSI" C)
-# gnu89 - c89 plus GCC extensions
-# c99   - ISO C99 standard (not yet fully implemented)
-# gnu99 - c99 plus GCC extensions (default for C)
-CSTANDARD =	-std=gnu99
+CSTANDARD =	-std=c11
 
 # C++ standard level.
-# empty   - default
-# c++98   - 1998 ISO C++ standard plus amendments. ("ANSI" C++)
-# gnu++98 - c++98 plus GNU extensions (default for C++)
-# c++0x   - working draft of upcoming ISO C++0x standard; experimental
-# gnu++0x - c++0x plus GNU extensions
-CXXSTANDARD =	-std=gnu++0x
+CXXSTANDARD = -std=c++11
 
 # Optimisations.
-OPT_OPTIMS =	-O3
-OPT_OPTIMS +=	-ffunction-sections -fdata-sections
-OPT_OPTIMS +=	-mrelax
+OPT_OPTIMS = -O3
+OPT_OPTIMS += -ffunction-sections -fdata-sections
+OPT_OPTIMS += -mrelax
 # -mrelax crashes binutils 2.22, 2.19.1 gives 878 byte shorter program.
 # The crash with binutils 2.22 needs a patch. See sourceware #12161.
 ifdef LTO
-OPT_OPTIMS +=	-flto
-#OPT_OPTIMS +=	-flto-report
-#OPT_OPTIMS +=	-fwhole-program
+OPT_OPTIMS += -flto
+#OPT_OPTIMS += -flto-report
+#OPT_OPTIMS += -fwhole-program
 # -fuse-linker-plugin requires gcc be compiled with --enable-gold, and requires
 # the gold linker to be available (GNU ld 2.21+ ?).
 #OPT_OPTIMS +=	-fuse-linker-plugin
@@ -395,16 +354,16 @@ endif
 # your Arduino sources, or turn the warnings off.
 ifndef OPT_WARN
 OPT_WARN =	-Wall
-#OPT_WARN +=	-pedantic
+#OPT_WARN += -pedantic
 OPT_WARN +=	-Wextra
-#OPT_WARN +=	-Wmissing-declarations
+#OPT_WARN += -Wmissing-declarations
 OPT_WARN +=	-Wmissing-field-initializers
 OPT_WARN +=	-Wsystem-headers
 OPT_WARN +=	-Wno-variadic-macros
 endif
 ifndef OPT_WARN_C
-OPT_WARN_C =	$(OPT_WARN)
-OPT_WARN_C +=	-Wmissing-prototypes
+OPT_WARN_C = $(OPT_WARN)
+OPT_WARN_C += -Wmissing-prototypes
 endif
 ifndef OPT_WARN_CXX
 OPT_WARN_CXX =	$(OPT_WARN)
@@ -414,22 +373,21 @@ endif
 ifndef OPT_OTHER
 OPT_OTHER =
 # Save gcc temp files (pre-processor, assembler):
-#OPT_OTHER +=	-save-temps
+#OPT_OTHER += -save-temps
 
 # Automatically enable build.extra_flags if needed
 # Used by Micro and other devices to fill in USB_PID and USB_VID
-OPT_OTHER +=	-DUSB_VID=$(VID) -DUSB_PID=$(PID)
+OPT_OTHER += -DUSB_VID=$(VID) -DUSB_PID=$(PID)
 #OPT_OTHER += -fno-use-cxa-atexit
 endif
 
 # Final combined.
-CFLAGS =	-mmcu=$(MCU) \
+CFLAGS = -mmcu=$(MCU) \
 		$(OPT_OPTIMS) $(OPT_DEBUG) $(CSTANDARD) $(CDEFS) \
 		$(OPT_WARN) $(OPT_OTHER) $(CEXTRA)
-CXXFLAGS =	-mmcu=$(MCU) \
+CXXFLAGS = -mmcu=$(MCU) \
 		$(OPT_OPTIMS) $(OPT_DEBUG) $(CXXSTANDARD) $(CDEFS) \
 		$(OPT_WARN) $(OPT_OTHER) $(CEXTRA)
-
 
 ### Assembler flags.
 
@@ -439,7 +397,7 @@ CXXFLAGS =	-mmcu=$(MCU) \
 ASTANDARD =	-x assembler-with-cpp
 
 # Final combined.
-ASFLAGS =	-mmcu=$(MCU) \
+ASFLAGS = -mmcu=$(MCU) \
 		$(CDEFS) \
 		$(ASTANDARD) $(ASEXTRA)
 
@@ -448,11 +406,10 @@ ASFLAGS =	-mmcu=$(MCU) \
 
 # Optimisation setting must match compiler's, esp. for -flto.
 
-LDFLAGS =	-mmcu=$(MCU)
-LDFLAGS +=	$(OPT_OPTIMS)
-LDFLAGS +=	-Wl,--gc-sections
+LDFLAGS = -mmcu=$(MCU)
+LDFLAGS += $(OPT_OPTIMS)
+LDFLAGS += -Wl,--gc-sections
 #LDFLAGS +=	-Wl,--print-gc-sections
-
 
 ### Programming / program uploading.
 
@@ -479,7 +436,6 @@ AVRDUDE_FLAGS+= -C /etc/avrdude.conf
 
 AVRDUDE_WRITE_FLASH = -U flash:w:$(OUTPUT)/$(PROJECT).hex:i
 
-
 ### Programs
 
 AVRPREFIX =	avr-
@@ -491,7 +447,6 @@ AR =		$(AVR_TOOLS_PATH)$(AVRPREFIX)ar
 SIZE =		$(AVR_TOOLS_PATH)$(AVRPREFIX)size
 NM =		$(AVR_TOOLS_PATH)$(AVRPREFIX)nm
 AVRDUDE =	$(AVR_TOOLS_PATH)avrdude
-#AVRDUDE =	$(ARDUINO_DIR)/hardware/tools/avrdude
 RM =		rm -f
 RMDIR = 	rmdir
 MV =		mv -f
@@ -586,7 +541,6 @@ $(OUTPUT)/%.cpp: %.pde
 	echo >> $@ "#include <WProgram.h>"
 	echo >> $@ "#endif"
 	cat  >> $@ $< $(CXXSRCINO)
-
 
 ### Explicit rules.
 
@@ -888,7 +842,6 @@ clean:
 	  $(ALLOBJ:%.o=%.ii) \
 	  $(notdir $(ALLOBJ:%.o=%.s) $(ALLOBJ:%.o=%.i) $(ALLOBJ:%.o=%.ii))
 	-test ! -d $(OUTPUT) || $(RMDIR) $(OUTPUT)
-
 
 ### Dependencies file and source path.
 
