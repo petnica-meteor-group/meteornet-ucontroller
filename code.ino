@@ -22,6 +22,7 @@ const int SHUTTER_ANGLE_DELTA = 2;
 const int SHUTTER_ANGLE_DELAY = 20;
 
 const int CAMERA_SWITCH_PIN = A3;
+const int CAMERA_SWITCH_DELAY = 300;
 
 const int PSU_VOLTAGE_PIN = A1;
 const float PSU_VOLTAGE_CONVERSION_FACTOR = 12.06 / 692.0;
@@ -133,25 +134,30 @@ void loop() {
     serial_receive(0, &command);
     switch (command) {
         case NIGHT: {
+            string_send(END_STRING);
             shutter_open();
+            delay(CAMERA_SWITCH_DELAY);
             camera_turn_on();
             break;
         }
         case DAY: {
+            string_send(END_STRING);
             camera_turn_off();
+            delay(CAMERA_SWITCH_DELAY);
             shutter_close();
             break;
         }
         case NAME_GET: {
             string_send(UCONTROLLER_NAME);
+            string_send(END_STRING);
             break;
         }
         case MEASUREMENTS_GET: {
             dht_info_send();
             psu_voltage_send();
             psu_status_send();
+            string_send(END_STRING);
             break;
         }
     }
-    string_send(END_STRING);
 }
