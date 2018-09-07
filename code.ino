@@ -22,8 +22,10 @@ const int SHUTTER_ANGLE_DELTA = 2;
 const int SHUTTER_ANGLE_DELAY = 20;
 
 const int CAMERA_SWITCH_PIN = A3;
-const int CAMERA_VOLTAGE_PIN = A1;
-const char* CAMERA_VOLTAGE_STRING = "PSU voltage:";
+
+const int PSU_VOLTAGE_PIN = A1;
+const float PSU_VOLTAGE_CONVERSION_FACTOR = 12.06 / 692.0;
+const char* PSU_VOLTAGE_STRING = "PSU voltage:";
 
 const int PSU_STATUS_PIN = A0;
 const char* PSU_STATUS_STRING = "PSU on/off:";
@@ -102,16 +104,17 @@ inline void psu_status_send() {
     string_send(BUFFER_STRING);
 }
 
-inline void camera_voltage_send() {
-    int voltage = analogRead(CAMERA_VOLTAGE_PIN);
-    strcpy(BUFFER_STRING, CAMERA_VOLTAGE_STRING);
-    sprintf(BUFFER_STRING + strlen(CAMERA_VOLTAGE_STRING), "%d", voltage);
+inline void psu_voltage_send() {
+    int pin_read = analogRead(PSU_VOLTAGE_PIN);
+    float voltage = pin_read * PSU_VOLTAGE_CONVERSION_FACTOR;
+    strcpy(BUFFER_STRING, PSU_VOLTAGE_STRING);
+    sprintf(BUFFER_STRING + strlen(PSU_VOLTAGE_STRING), "%d.%04d", (int)voltage, (int)((voltage - (int)voltage) * 10000));
     string_send(BUFFER_STRING);
 }
 
 void setup() {
     pinMode(CAMERA_SWITCH_PIN, OUTPUT);
-    pinMode(CAMERA_VOLTAGE_PIN, INPUT);
+    pinMode(PSU_VOLTAGE_PIN, INPUT);
     pinMode(PSU_STATUS_PIN, INPUT);
 
     dht.begin();
@@ -141,15 +144,14 @@ void loop() {
         }
         case NAME_GET: {
             string_send(UCONTROLLER_NAME);
-            string_send(END_STRING);
             break;
         }
         case MEASUREMENTS_GET: {
             dht_info_send();
+            psu_voltage_send();
             psu_status_send();
-            camera_voltage_send();
-            string_send(END_STRING);
             break;
         }
     }
+    string_send(END_STRING);
 }
