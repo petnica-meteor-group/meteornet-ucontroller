@@ -94,13 +94,13 @@ inline void camera_turn_off() {
 inline void dht_info_send() {
     float hum = dht.readHumidity();
     strcpy(BUFFER_STRING, DHT_HUM_STRING);
-    sprintf(BUFFER_STRING + strlen(BUFFER_STRING), "%d.%04d", (int)hum, (int)((hum - (int)hum) * 10000));
+    sprintf(BUFFER_STRING + strlen(BUFFER_STRING), "%d.%d", (int)hum, (int)((hum - (int)hum) * 10));
     sprintf(BUFFER_STRING + strlen(BUFFER_STRING), "%s", DHT_HUM_UNIT);
     string_send(BUFFER_STRING);
 
     float temp = dht.readTemperature();
     strcpy(BUFFER_STRING, DHT_TEMP_STRING);
-    sprintf(BUFFER_STRING + strlen(BUFFER_STRING), "%d.%04d", (int)temp, (int)((temp - (int)temp) * 10000));
+    sprintf(BUFFER_STRING + strlen(BUFFER_STRING), "%d.%d", (int)temp, (int)((temp - (int)temp) * 10));
     sprintf(BUFFER_STRING + strlen(BUFFER_STRING), "%s", DHT_TEMP_UNIT);
     string_send(BUFFER_STRING);
 }
@@ -116,7 +116,7 @@ inline void camera_voltage_send() {
     int pin_read = analogRead(CAMERA_VOLTAGE_PIN);
     float voltage = pin_read * CAMERA_VOLTAGE_CONVERSION_FACTOR;
     strcpy(BUFFER_STRING, CAMERA_VOLTAGE_STRING);
-    sprintf(BUFFER_STRING + strlen(BUFFER_STRING), "%d.%04d", (int)voltage, (int)((voltage - (int)voltage) * 10000));
+    sprintf(BUFFER_STRING + strlen(BUFFER_STRING), "%d.%02d", (int)voltage, (int)((voltage - (int)voltage) * 100));
     sprintf(BUFFER_STRING + strlen(BUFFER_STRING), "%s", CAMERA_VOLTAGE_UNIT);
     string_send(BUFFER_STRING);
 }
